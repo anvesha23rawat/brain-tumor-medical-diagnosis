@@ -19,6 +19,8 @@ def build_model(input_shape):
         layers.MaxPooling2D(2,2),
         layers.Conv2D(128, (3,3), activation='relu'),
         layers.MaxPooling2D(2,2),
+        layers.Conv2D(256, (3,3), activation='relu'),
+        layers.MaxPooling2D(2,2),
         layers.Flatten(),
         layers.Dense(128, activation='relu'),
         layers.Dropout(0.5),
@@ -30,7 +32,7 @@ def build_model(input_shape):
 model = build_model(X_train.shape[1:])
 
 # Train model
-history = model.fit(X_train, y_train, epochs=10, batch_size=32, validation_split=0.1)
+history = model.fit(X_train, y_train, epochs=20, batch_size=32, validation_split=0.1)
 
 # Evaluate model
 loss, accuracy = model.evaluate(X_test, y_test)

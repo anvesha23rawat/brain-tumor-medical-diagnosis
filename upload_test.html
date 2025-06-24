@@ -63,6 +63,39 @@
             font-size: 0.95rem;
             text-shadow: 0 1px 2px #000;
         }
+        #progressBar {
+            width: 100%;
+            height: 12px;
+            background: #222;
+            border-radius: 6px;
+            margin: 16px 0 8px 0;
+            box-shadow: 0 2px 8px #0004;
+            overflow: hidden;
+            display: none;
+        }
+        #progressInner {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #00c6ff 0%, #0072ff 100%);
+            border-radius: 6px;
+            transition: width 0.5s;
+        }
+        .preview-img {
+            max-width: 110px;
+            max-height: 110px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px #0005;
+            margin: 0 7px 7px 0;
+            border: 2px solid #00c6ff33;
+            transition: border 0.2s;
+            cursor: pointer;
+        }
+        .preview-img.selected {
+            border: 2.5px solid #00c6ff;
+        }
+        .annotation-canvas {
+            outline: 2px dashed #00c6ff;
+        }
     </style>
 </head>
 <body>
@@ -95,6 +128,7 @@
             </thead>
             <tbody></tbody>
         </table>
+        <div id="progressBar"><div id="progressInner"></div></div>
     </div>
     <!-- <div class="footer">2025 Medical Image Diagnosis System</div> -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -108,10 +142,21 @@
         const historyTable = document.getElementById('historyTable').getElementsByTagName('tbody')[0];
         const downloadPdfBtn = document.getElementById('downloadPdfBtn');
         const downloadBatchPdfBtn = document.getElementById('downloadBatchPdfBtn');
+        const progressBar = document.getElementById('progressBar');
+        const progressInner = document.getElementById('progressInner');
         let lastReport = '';
         let lastDiagnosis = '', lastConfidence = '', lastTime = '', lastImage = '';
         let lastBatchResults = [];
         let lastBatchPdfBase64 = '';
+
+        function showProgress(percent) {
+            progressBar.style.display = 'block';
+            progressInner.style.width = percent + '%';
+        }
+        function hideProgress() {
+            progressBar.style.display = 'none';
+            progressInner.style.width = '0%';
+        }
 
         fileInput.addEventListener('change', function() {
             previewContainer.innerHTML = '';
@@ -121,11 +166,7 @@
                 reader.onload = function(e) {
                     const img = document.createElement('img');
                     img.src = e.target.result;
-                    img.style.maxWidth = '100px';
-                    img.style.maxHeight = '100px';
-                    img.style.borderRadius = '8px';
-                    img.style.boxShadow = '0 2px 8px #0003';
-                    img.style.margin = '0 5px 5px 0';
+                    img.className = 'preview-img';
                     img.setAttribute('data-idx', idx);
                     previewContainer.appendChild(img);
                 };
@@ -153,6 +194,7 @@
 
         form.addEventListener('submit', async function(e) {
             e.preventDefault();
+            showProgress(30);
             resultDiv.textContent = 'Predicting...';
             downloadPdfBtn.style.display = 'none';
             downloadBatchPdfBtn.style.display = 'none';
@@ -167,7 +209,8 @@
             if (email) {
                 formData.append('email', email);
             }
-            submitPrediction(formData);
+            await submitPrediction(formData);
+            hideProgress();
         });
 
         async function submitPrediction(formData) {
@@ -413,6 +456,14 @@
                 alert('Could not connect to server.');
             }
         }
+
+        // Modernize annotation: highlight selected image
+        previewContainer.addEventListener('click', function(e) {
+            if (e.target.tagName === 'IMG') {
+                Array.from(previewContainer.children).forEach(img => img.classList.remove('selected'));
+                e.target.classList.add('selected');
+            }
+        });
     </script>
 </body>
 </html>

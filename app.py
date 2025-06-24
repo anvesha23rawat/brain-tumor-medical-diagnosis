@@ -74,6 +74,8 @@ def predict():
         if img is None:
             results.append({'diagnosis': 'Invalid image', 'confidence': 0.0})
             continue
+        # Apply median blur for noise cancellation
+        img = cv2.medianBlur(img, 5)
         img = cv2.resize(img, (IMG_SIZE, IMG_SIZE))
         img = img / 255.0
         img = np.expand_dims(img, axis=(0, -1))
